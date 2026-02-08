@@ -16,16 +16,46 @@ body {
 }
 
 .camera-container {
+  position: relative;
   width: 640px;
   height: 480px;
-  background: #ddd;
-  border: 2px solid #000;
+  border: 2px solid black;
+  overflow: hidden;
+}
+
+.camera-container video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transform: scaleX(-1);
+
 }
 
 .camera-feed {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transform: scaleX(-1);
 }
+
+.start-btn {
+  padding: 16px 32px;
+  font-size: 24px;
+  border: 2px solid black;
+  background: white;
+  cursor: pointer;
+}
+.countdown {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 96px;
+  font-weight: bold;
+  color: pink;
+  text-shadow: 3px 3px 0 black;
+  pointer-events: none;
+  z-index: 10;
+}
+
+
 
