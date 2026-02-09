@@ -1,4 +1,6 @@
 import { useEffect, useRef, useState } from "react";
+import PhotoStripPreview from "./PhotostripPreview";
+
 
 export default function CameraView() {
     const videoRef = useRef(null);
@@ -75,14 +77,20 @@ useEffect(() => {
 
     
     return (
-        <div className="camera-container">
-            <video ref={videoRef} autoPlay playsInline muted />
-            {shotIndex < 4 && phase === "countdown" &&(
-                <div className="countdown">
-                    {countdown}
-                </div>
+        <>
+            {photos.length < 4 ? (
+            <div className="camera-container">
+                <video ref={videoRef} autoPlay playsInline muted />
+                {shotIndex < 4 && phase === "countdown" &&(
+                    <div className="countdown">
+                        {countdown}
+                    </div>
+                )}
+                <canvas ref={canvasRef} style={{ display: "none" }} />
+            </div>
+            ) : (
+                <PhotoStripPreview photos = {photos} />
             )}
-            <canvas ref={canvasRef} style={{ display: "none" }} />
-        </div>
+        </>
     );
 }
