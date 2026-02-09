@@ -5,10 +5,7 @@ export default function CameraView() {
     const canvasRef = useRef(null);
 
     const [countdown, setCountdown] = useState(3);
-<<<<<<< HEAD
     const [phase, setPhase] = useState("countdown"); 
-=======
->>>>>>> 365b0c71104b3c1814cdfb69eb838489b72f6ccc
     const [photos, setPhotos] = useState([]);
     const [shotIndex, setShotIndex] = useState(0);
 
@@ -19,21 +16,18 @@ export default function CameraView() {
                 video: true,
                 audio: false,
             });
-<<<<<<< HEAD
 
-=======
->>>>>>> 365b0c71104b3c1814cdfb69eb838489b72f6ccc
             videoRef.current.srcObject = stream;
         }
         startCamera();
     }, []);
 
-<<<<<<< HEAD
-    useEffect(() => {
-        if (shotIndex >= 4) return;
+  // Countdown + capture loop
+useEffect(() => {
+    if (shotIndex >= 4) return;
 
-        if (phase === "countdown") {
-            if (countdown === 0) {
+    if (phase === "countdown") {
+        if (countdown === 0) {
             capturePhoto();
             setPhase("cooldown");
             return;
@@ -45,59 +39,17 @@ export default function CameraView() {
 
         return () => clearTimeout(t);
     }
-=======
-  // Countdown + capture loop
-    useEffect(() => {
-        if (shotIndex >= 4) return;
-
-        if (countdown === 0) {
-            capturePhoto();
-            setShotIndex((i) => i + 1);
-            setCountdown(3);
-            return;
-        }
-
-        const timer = setTimeout(() => {
-            setCountdown((c) => c - 1);
-        }, 1000);
-
-        return () => clearTimeout(timer);
-    }, [countdown, shotIndex]);
-
-    function capturePhoto() {
-        const video = videoRef.current;
-        const canvas = canvasRef.current;
-        const ctx = canvas.getContext("2d");
-
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
-
-        ctx.drawImage(video, 0, 0);
-
-        canvas.toBlob((blob) => {
-            setPhotos((prev) => [...prev, blob]);
-            console.log("Captured photo", photos.length + 1);
-        }, "image/png");
-    } 
-
-    useEffect(() => {
-        if (photos.length === 4) {
-            console.log("All photos captured", photos);
-        }
-    }, [photos]);
->>>>>>> 365b0c71104b3c1814cdfb69eb838489b72f6ccc
 
     if (phase === "cooldown") {
         const t = setTimeout(() => {
             setCountdown(3);
             setShotIndex(i => i + 1);
             setPhase("countdown");
-        }, 1000);
+        }, 1000); 
 
         return () => clearTimeout(t);
     }
 }, [countdown, phase, shotIndex]);
-
 
     function capturePhoto() {
         const video = videoRef.current;
@@ -125,21 +77,11 @@ export default function CameraView() {
     return (
         <div className="camera-container">
             <video ref={videoRef} autoPlay playsInline muted />
-<<<<<<< HEAD
             {shotIndex < 4 && phase === "countdown" &&(
                 <div className="countdown">
                     {countdown}
                 </div>
             )}
-=======
-
-            {shotIndex < 4 && (
-                <div className="countdown">
-                    {countdown} 
-                </div>
-            )}
-
->>>>>>> 365b0c71104b3c1814cdfb69eb838489b72f6ccc
             <canvas ref={canvasRef} style={{ display: "none" }} />
         </div>
     );
