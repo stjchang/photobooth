@@ -1,9 +1,11 @@
 import { useEffect, useRef, useState, useCallback } from "react";
+import { savePhoto } from "../utils/indexedDB";
 
 const SHOT_COUNT = 4;
 const COUNTDOWN_START = 3;
 
 export default function CameraView({
+    frame,
     filter,
     photos,
     setPhotos,
@@ -49,13 +51,21 @@ export default function CameraView({
         ctx.drawImage(video, 0, 0);
 
         canvas.toBlob((blob) => {
+            if (!blob) return;
+
+            const currentPhotoIndex = shotIndex;
+            
+            savePhoto(blob, currentPhotoIndex, frame, filter).catch((error) => {
+                console.error("Failed to save photo to IndexedDB:", error);
+            });
+
             setPhotos((prev) => {
                 const newPhotos = [...prev, blob];
                 console.log("Captured photo", newPhotos.length);
                 return newPhotos;
             });
         }, "image/png");
-    }, [setPhotos]);
+    }, [setPhotos, shotIndex, frame, filter]);
 
     useEffect(() => {
         if (shotIndex >= 4) return;

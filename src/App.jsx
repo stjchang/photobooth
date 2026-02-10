@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { clearAllPhotos } from "./utils/indexedDB";
 
 import HomeScreen from "./components/HomeScreen";
 import FrameSelection from "./components/FrameSelection";
@@ -7,12 +8,17 @@ import PhotoStripPreview from "./components/PhotoStripPreview";
 
 function App() {
   const [screen, setScreen] = useState("home");
-
   const [frame, setFrame] = useState(null);
   const [filter, setFilter] = useState("color"); 
   const [photos, setPhotos] = useState([]);
 
-  const resetApp = () => {
+  const resetApp = async () => {
+    try {
+      await clearAllPhotos();
+    } catch (error) {
+      console.error("Failed to clear IndexedDB:", error);
+    }
+    
     setFrame(null);
     setFilter("color");
     setPhotos([]);
