@@ -1,20 +1,26 @@
-import { useEffect, useRef, useState } from "react";
-import PhotoStripPreview from "./PhotostripPreview";
+import { useEffect, useRef, useState, useCallback } from "react";
 
+const SHOT_COUNT = 4;
+const COUNTDOWN_START = 3;
 
-export default function CameraView() {
+export default function CameraView({
+    filter,
+    photos,
+    setPhotos,
+    onDone
+}) {
     const videoRef = useRef(null);
     const canvasRef = useRef(null);
 
     const [countdown, setCountdown] = useState(3);
     const [phase, setPhase] = useState("countdown"); 
-    const [photos, setPhotos] = useState([]);
     const [shotIndex, setShotIndex] = useState(0);
 
   // Start camera
     useEffect(() => {
+        let stream = null;
         async function startCamera() {
-            const stream = await navigator.mediaDevices.getUserMedia({
+            stream = await navigator.mediaDevices.getUserMedia({
                 video: true,
                 audio: false,
             });
@@ -22,40 +28,19 @@ export default function CameraView() {
             videoRef.current.srcObject = stream;
         }
         startCamera();
+
+        return () => {
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+            }
+        };
     }, []);
 
-  // Countdown + capture loop
-useEffect(() => {
-    if (shotIndex >= 4) return;
-
-    if (phase === "countdown") {
-        if (countdown === 0) {
-            capturePhoto();
-            setPhase("cooldown");
-            return;
-        }
-
-        const t = setTimeout(() => {
-            setCountdown(c => c - 1);
-        }, 1000);
-
-        return () => clearTimeout(t);
-    }
-
-    if (phase === "cooldown") {
-        const t = setTimeout(() => {
-            setCountdown(3);
-            setShotIndex(i => i + 1);
-            setPhase("countdown");
-        }, 1000); 
-
-        return () => clearTimeout(t);
-    }
-}, [countdown, phase, shotIndex]);
-
-    function capturePhoto() {
+    const capturePhoto = useCallback(() => {
         const video = videoRef.current;
         const canvas = canvasRef.current;
+        if (!video || !canvas) return;
+        
         const ctx = canvas.getContext("2d");
 
         canvas.width = video.videoWidth;
@@ -64,33 +49,59 @@ useEffect(() => {
         ctx.drawImage(video, 0, 0);
 
         canvas.toBlob((blob) => {
-            setPhotos((prev) => [...prev, blob]);
-            console.log("Captured photo", photos.length + 1);
+            setPhotos((prev) => {
+                const newPhotos = [...prev, blob];
+                console.log("Captured photo", newPhotos.length);
+                return newPhotos;
+            });
         }, "image/png");
-    }
+    }, [setPhotos]);
+
+    useEffect(() => {
+        if (shotIndex >= 4) return;
+
+        if (phase === "countdown") {
+            if (countdown === 0) {
+                capturePhoto();
+                setPhase("cooldown");
+                return;
+            }
+
+            const t = setTimeout(() => {
+                setCountdown(c => c - 1);
+            }, 1000);
+
+            return () => clearTimeout(t);
+        }
+
+        if (phase === "cooldown") {
+            const t = setTimeout(() => {
+                setCountdown(3);
+                setShotIndex(i => i + 1);
+                setPhase("countdown");
+            }, 1000); 
+
+            return () => clearTimeout(t);
+        }
+    }, [countdown, phase, shotIndex, capturePhoto]);
 
     useEffect(() => {
         if (photos.length === 4) {
             console.log("All photos captured", photos);
+            onDone();
         }
-    }, [photos]);
+    }, [photos, onDone]);
 
     
     return (
-        <>
-            {photos.length < 4 ? (
-            <div className="camera-container">
-                <video ref={videoRef} autoPlay playsInline muted />
-                {shotIndex < 4 && phase === "countdown" &&(
-                    <div className="countdown">
-                        {countdown}
-                    </div>
-                )}
-                <canvas ref={canvasRef} style={{ display: "none" }} />
-            </div>
-            ) : (
-                <PhotoStripPreview photos = {photos} />
+        <div className="camera-container">
+            <video ref={videoRef} autoPlay playsInline muted />
+            {shotIndex < 4 && phase === "countdown" && (
+                <div className="countdown">
+                    {countdown}
+                </div>
             )}
-        </>
+            <canvas ref={canvasRef} style={{ display: "none" }} />
+        </div>
     );
 }
