@@ -9,6 +9,7 @@ import PhotoStripPreview from "./components/PhotoStripPreview";
 function App() {
   const [screen, setScreen] = useState("home");
   const [frame, setFrame] = useState(null);
+  const [miniFrame, setMiniFrame] = useState(null);
   const [filter, setFilter] = useState("color"); 
   const [photos, setPhotos] = useState([]);
 
@@ -20,6 +21,7 @@ function App() {
     }
     
     setFrame(null);
+    setMiniFrame(null);
     setFilter("color");
     setPhotos([]);
     setScreen("home");
@@ -37,6 +39,8 @@ function App() {
         <FrameSelection
           frame={frame}
           setFrame={setFrame}
+          miniFrame={miniFrame}
+          setMiniFrame={setMiniFrame}
           filter={filter}
           setFilter={setFilter}
           onConfirm={() => setScreen("camera")}
@@ -58,6 +62,7 @@ function App() {
         <PhotoStripPreview
           photos={photos}
           frameSrc={frame}
+          miniFrame={miniFrame}
           filter={filter}
           onReset={resetApp}
         />

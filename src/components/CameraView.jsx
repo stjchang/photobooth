@@ -1,22 +1,20 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { savePhoto } from "../utils/indexedDB";
 
-const SHOT_COUNT = 4;
-const COUNTDOWN_START = 3;
-
 export default function CameraView({
     frame,
     filter,
     photos,
     setPhotos,
     onDone
-}) {
+}) {    
     const videoRef = useRef(null);
     const canvasRef = useRef(null);
 
     const [countdown, setCountdown] = useState(3);
-    const [phase, setPhase] = useState("countdown"); 
+    const [phase, setPhase] = useState("waiting"); // Start in waiting phase until video is ready
     const [shotIndex, setShotIndex] = useState(0);
+    const [isVideoReady, setIsVideoReady] = useState(false);
 
   // Start camera
     useEffect(() => {
@@ -37,6 +35,33 @@ export default function CameraView({
             }
         };
     }, []);
+
+    // Wait for video to be ready before starting countdown
+    useEffect(() => {
+        const video = videoRef.current;
+        if (!video) return;
+
+        const handleVideoReady = () => {
+            setIsVideoReady(true);
+            // Start countdown once video is ready
+            if (phase === "waiting" && shotIndex === 0) {
+                setPhase("countdown");
+            }
+        };
+
+        // Check if video is already ready
+        if (video.readyState >= 2) { 
+            handleVideoReady();
+        } else {
+            video.addEventListener("loadedmetadata", handleVideoReady);
+            video.addEventListener("canplay", handleVideoReady);
+        }
+
+        return () => {
+            video.removeEventListener("loadedmetadata", handleVideoReady);
+            video.removeEventListener("canplay", handleVideoReady);
+        };
+    }, [phase, shotIndex]);
 
     const capturePhoto = useCallback(() => {
         const video = videoRef.current;
@@ -69,6 +94,15 @@ export default function CameraView({
 
     useEffect(() => {
         if (shotIndex >= 4) return;
+        if (!isVideoReady) return; // Don't start countdown until video is ready
+
+        if (phase === "waiting") {
+            // Transition to countdown when video is ready
+            if (isVideoReady) {
+                setPhase("countdown");
+            }
+            return;
+        }
 
         if (phase === "countdown") {
             if (countdown === 0) {
@@ -93,7 +127,7 @@ export default function CameraView({
 
             return () => clearTimeout(t);
         }
-    }, [countdown, phase, shotIndex, capturePhoto]);
+    }, [countdown, phase, shotIndex, capturePhoto, isVideoReady]);
 
     useEffect(() => {
         if (photos.length === 4) {
