@@ -15,6 +15,7 @@ export default function CameraView({
     const [phase, setPhase] = useState("waiting"); // Start in waiting phase until video is ready
     const [shotIndex, setShotIndex] = useState(0);
     const [isVideoReady, setIsVideoReady] = useState(false);
+    const [showFlash, setShowFlash] = useState(false);
 
   // Start camera
     useEffect(() => {
@@ -67,6 +68,12 @@ export default function CameraView({
         const video = videoRef.current;
         const canvas = canvasRef.current;
         if (!video || !canvas) return;
+        
+        setShowFlash(true);
+        
+        setTimeout(() => {
+            setShowFlash(false);
+        }, 150);
         
         const ctx = canvas.getContext("2d");
 
@@ -144,6 +151,9 @@ export default function CameraView({
                 <div className="countdown">
                     {countdown}
                 </div>
+            )}
+            {showFlash && (
+                <div className="camera-flash" />
             )}
             <canvas ref={canvasRef} style={{ display: "none" }} />
         </div>
