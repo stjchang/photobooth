@@ -5,6 +5,7 @@ import HomeScreen from "./components/HomeScreen";
 import FrameSelection from "./components/FrameSelection";
 import CameraView from "./components/CameraView";
 import PhotoStripPreview from "./components/PhotoStripPreview";
+import Slideshow from "./components/Slideshow";
 
 function App() {
   const [screen, setScreen] = useState("home");
@@ -32,7 +33,12 @@ function App() {
       {screen === "home" && (
         <HomeScreen
           onStart={() => setScreen("frame")}
+          onOpenSlideshow={() => setScreen("slideshow")}
         />
+      )}
+
+      {screen === "slideshow" && (
+        <Slideshow onBack={() => setScreen("home")} />
       )}
 
       {screen === "frame" && (

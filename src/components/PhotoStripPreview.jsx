@@ -264,14 +264,31 @@ export default function PhotoStripPreview({ photos, frameSrc, miniFrame, filter,
                     ctx.drawImage(photoImg, photoX, photoY, photoWidth, photoHeight);
 
                     if (filter === "bw") {
-                        const imageData = ctx.getImageData(photoX, photoY, photoWidth, photoHeight);
+                        const imageData = ctx.getImageData(x, y, width, height);
                         const data = imageData.data;
 
+                        const contrast = 1.35;
+                        const brightness = 10;
+                        const grainAmount = 12;
+
                         for (let i = 0; i < data.length; i += 4) {
-                            const avg = (data[i] + data[i + 1] + data[i + 2]) / 3;
-                            data[i] = data[i + 1] = data[i + 2] = avg;
+                            let gray =
+                                0.299 * data[i] +
+                                0.587 * data[i + 1] +
+                                0.114 * data[i + 2];
+
+                            gray = (gray - 128) * contrast + 128;
+                            gray += brightness;
+
+                            const grain = (Math.random() - 0.5) * grainAmount;
+                            gray += grain;
+
+                            gray = Math.max(0, Math.min(255, gray));
+
+                            data[i] = data[i + 1] = data[i + 2] = gray;
                         }
-                        ctx.putImageData(imageData, photoX, photoY);
+
+                        ctx.putImageData(imageData, x, y);
                     }
 
                     // Download

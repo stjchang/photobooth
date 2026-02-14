@@ -2,6 +2,8 @@ import pinkFrame from "../assets/frames/pinkFrame.png";
 import pinkFrameMini from "../assets/frames/pinkFrameMini.png";
 import valentineFrame from "../assets/frames/valentineFrame.png";
 import valentineFrameMini from "../assets/frames/valentineFrameMini.png";
+import blackFrame from "../assets/frames/blackFrame.png";
+import blackFrameMini from "../assets/frames/blackFrameMini.png";
 
 export default function FrameSelection({
     frame,
@@ -14,10 +16,9 @@ export default function FrameSelection({
 }) {
     // Placeholder frame options 
     const frameOptions = [
-        { id: "frame1", src: "/assets/frame1.png", miniSrc: "/assets/frame1Mini.png", label: "Frame 1" },
-        { id: "frame2", src: "/assets/frame2.png", miniSrc: "/assets/frame2Mini.png", label: "Frame 2" },
         { id: "pinkFrame", src: pinkFrame, miniSrc: pinkFrameMini, label: "Pink Frame" },
         { id: "valentineFrame", src: valentineFrame, miniSrc: valentineFrameMini, label: "Valentine Frame" },
+        { id: "blackFrame", src: blackFrame, miniSrc: blackFrameMini, label: "Black Frame" },
     ];
 
     return (
