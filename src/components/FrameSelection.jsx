@@ -1,9 +1,18 @@
+import { useEffect } from "react";
+import frameSelectBg from "../assets/backdrops/frame_select.png";
+import switchImg from "../assets/switch.png";
 import pinkFrame from "../assets/frames/pinkFrame.png";
 import pinkFrameMini from "../assets/frames/pinkFrameMini.png";
 import valentineFrame from "../assets/frames/valentineFrame.png";
 import valentineFrameMini from "../assets/frames/valentineFrameMini.png";
 import blackFrame from "../assets/frames/blackFrame.png";
 import blackFrameMini from "../assets/frames/blackFrameMini.png";
+
+const frameOptions = [
+    { id: "pinkFrame", src: pinkFrame, miniSrc: pinkFrameMini, label: "Pink Frame" },
+    { id: "valentineFrame", src: valentineFrame, miniSrc: valentineFrameMini, label: "Valentine Frame" },
+    { id: "blackFrame", src: blackFrame, miniSrc: blackFrameMini, label: "Black Frame" },
+];
 
 export default function FrameSelection({
     frame,
@@ -14,65 +23,77 @@ export default function FrameSelection({
     setFilter,
     onConfirm
 }) {
-    // Placeholder frame options 
-    const frameOptions = [
-        { id: "pinkFrame", src: pinkFrame, miniSrc: pinkFrameMini, label: "Pink Frame" },
-        { id: "valentineFrame", src: valentineFrame, miniSrc: valentineFrameMini, label: "Valentine Frame" },
-        { id: "blackFrame", src: blackFrame, miniSrc: blackFrameMini, label: "Black Frame" },
-    ];
+    // Default to first frame when entering so Start always has a valid frame
+    useEffect(() => {
+        if (!frame || !miniFrame) {
+            setFrame(frameOptions[0].src);
+            setMiniFrame(frameOptions[0].miniSrc);
+        }
+    }, [frame, miniFrame, setFrame, setMiniFrame]);
+
+    const currentIndex = frameOptions.findIndex((opt) => opt.src === frame);
+    const safeIndex = currentIndex >= 0 ? currentIndex : 0;
+    const currentLabel = frameOptions[safeIndex]?.label ?? frameOptions[0].label;
+
+    const goPrevious = () => {
+        const prevIndex = safeIndex === 0 ? frameOptions.length - 1 : safeIndex - 1;
+        const opt = frameOptions[prevIndex];
+        setFrame(opt.src);
+        setMiniFrame(opt.miniSrc);
+    };
+
+    const goNext = () => {
+        const nextIndex = safeIndex === frameOptions.length - 1 ? 0 : safeIndex + 1;
+        const opt = frameOptions[nextIndex];
+        setFrame(opt.src);
+        setMiniFrame(opt.miniSrc);
+    };
+
+    const toggleFilter = () => {
+        setFilter((prev) => (prev === "color" ? "bw" : "color"));
+    };
 
     return (
         <div className="frame-selection">
-            <h2>Choose your frame</h2>
-
-            <div className="frame-grid">
-                {frameOptions.map((frameOption) => (
-                    <div
-                        key={frameOption.id}
-                        className={`frame-option ${frame === frameOption.src ? "selected" : ""}`}
-                        onClick={() => {
-                            setFrame(frameOption.src);
-                            setMiniFrame(frameOption.miniSrc);
-                        }}
-                    >
-                        {/* Placeholder for 1x4 photostrip frame preview */}
-                        <div className="frame-preview">
-                            {/* Replace this with your actual frame image */}
-                            <div className="frame-placeholder">
-                                <div className="frame-strip">
-                                    <div className="frame-photo-slot"></div>
-                                    <div className="frame-photo-slot"></div>
-                                    <div className="frame-photo-slot"></div>
-                                    <div className="frame-photo-slot"></div>
-                                </div>
-                            </div>
-                        </div>
-                        <span>{frameOption.label}</span>
-                    </div>
-                ))}
-            </div>
-
-            <div className="filter-toggle">
+            <div
+                className="frame-selection__bg"
+                style={{ backgroundImage: `url(${frameSelectBg})` }}
+            />
+            <div className="frame-selection__frame-picker">
                 <button
-                    className={filter === "color" ? "active" : ""}
-                    onClick={() => setFilter("color")}
+                    type="button"
+                    className="frame-selection__arrow frame-selection__arrow--left"
+                    onClick={goPrevious}
+                    aria-label="Previous frame"
                 >
-                    Color
+                    ←
                 </button>
+                <span className="frame-selection__frame-label">{currentLabel}</span>
                 <button
-                    className={filter === "bw" ? "active" : ""}
-                    onClick={() => setFilter("bw")}
+                    type="button"
+                    className="frame-selection__arrow frame-selection__arrow--right"
+                    onClick={goNext}
+                    aria-label="Next frame"
                 >
-                    B&W
+                    →
                 </button>
             </div>
-
             <button
-                disabled={!frame}
+                type="button"
+                className="frame-selection__switch-btn"
+                onClick={toggleFilter}
+                aria-label="Toggle filter"
+                style={{
+                    backgroundImage: `url(${switchImg})`,
+                    transform: filter === "bw" ? "scaleX(-1)" : "none",
+                }}
+            />
+            <button
+                type="button"
+                className="frame-selection__start-btn"
                 onClick={onConfirm}
-            >
-                Start Shooting
-            </button>
+                aria-label="Start Shooting"
+            />
         </div>
     );
 }

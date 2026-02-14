@@ -72,29 +72,48 @@ export default function PhotoStripPreview({ photos, frameSrc, miniFrame, filter,
             img.src = URL.createObjectURL(blob);
 
             img.onload = () => {
-                        const photoX = MARGIN_SIDES * SCALE_FACTOR;
-                        const photoY = getPhotoY(index) * SCALE_FACTOR;
-                        const scaledPhotoWidth = PHOTO_WIDTH * SCALE_FACTOR;
-                        const scaledPhotoHeight = PHOTO_HEIGHT * SCALE_FACTOR;
+                const photoX = MARGIN_SIDES * SCALE_FACTOR;
+                const photoY = getPhotoY(index) * SCALE_FACTOR;
+                const scaledPhotoWidth = PHOTO_WIDTH * SCALE_FACTOR;
+                const scaledPhotoHeight = PHOTO_HEIGHT * SCALE_FACTOR;
 
                         // Draw photo with mirror effect (on top of frame)
                 ctx.save();
-                        ctx.translate(scaledWidth - photoX, photoY);
+                ctx.translate(scaledWidth - photoX, photoY);
                 ctx.scale(-1, 1);
 
-                        ctx.drawImage(img, 0, 0, scaledPhotoWidth, scaledPhotoHeight);
+                ctx.drawImage(img, 0, 0, scaledPhotoWidth, scaledPhotoHeight);
                 ctx.restore();
 
                 if (filter === "bw") {
-                            const imageData = ctx.getImageData(photoX, photoY, scaledPhotoWidth, scaledPhotoHeight);
+                    const drawX = scaledWidth - photoX - scaledPhotoWidth;
+                    const drawY = photoY;
+                    const imageData = ctx.getImageData(drawX, drawY, scaledPhotoWidth, scaledPhotoHeight);
                     const data = imageData.data;
 
-                for (let i = 0; i < data.length; i += 4) {
-                    const avg = (data[i] + data[i + 1] + data[i + 2]) / 3;
-                    data[i] = data[i + 1] = data[i + 2] = avg;
+                    const contrast = 1.35;
+                    const brightness = 10;
+                    const grainAmount = 12;
+
+                    for (let i = 0; i < data.length; i += 4) {
+                        let gray =
+                            0.299 * data[i] +
+                            0.587 * data[i + 1] +
+                            0.114 * data[i + 2];
+
+                        gray = (gray - 128) * contrast + 128;
+                        gray += brightness;
+
+                        const grain = (Math.random() - 0.5) * grainAmount;
+                        gray += grain;
+
+                        gray = Math.max(0, Math.min(255, gray));
+
+                        data[i] = data[i + 1] = data[i + 2] = gray;
+                    }
+
+                    ctx.putImageData(imageData, drawX, drawY);
                 }
-                            ctx.putImageData(imageData, photoX, photoY);
-                        }
 
                         resolve();
                     };
@@ -151,10 +170,27 @@ export default function PhotoStripPreview({ photos, frameSrc, miniFrame, filter,
                             const imageData = ctx.getImageData(photoX, photoY, photoWidth, photoHeight);
                             const data = imageData.data;
 
+                            const contrast = 1.35;
+                            const brightness = 10;
+                            const grainAmount = 12;
+
                             for (let i = 0; i < data.length; i += 4) {
-                                const avg = (data[i] + data[i + 1] + data[i + 2]) / 3;
-                                data[i] = data[i + 1] = data[i + 2] = avg;
+                                let gray =
+                                    0.299 * data[i] +
+                                    0.587 * data[i + 1] +
+                                    0.114 * data[i + 2];
+
+                                gray = (gray - 128) * contrast + 128;
+                                gray += brightness;
+
+                                const grain = (Math.random() - 0.5) * grainAmount;
+                                gray += grain;
+
+                                gray = Math.max(0, Math.min(255, gray));
+
+                                data[i] = data[i + 1] = data[i + 2] = gray;
                             }
+
                             ctx.putImageData(imageData, photoX, photoY);
                         }
 
@@ -264,7 +300,7 @@ export default function PhotoStripPreview({ photos, frameSrc, miniFrame, filter,
                     ctx.drawImage(photoImg, photoX, photoY, photoWidth, photoHeight);
 
                     if (filter === "bw") {
-                        const imageData = ctx.getImageData(x, y, width, height);
+                        const imageData = ctx.getImageData(photoX, photoY, photoWidth, photoHeight);
                         const data = imageData.data;
 
                         const contrast = 1.35;
@@ -288,7 +324,7 @@ export default function PhotoStripPreview({ photos, frameSrc, miniFrame, filter,
                             data[i] = data[i + 1] = data[i + 2] = gray;
                         }
 
-                        ctx.putImageData(imageData, x, y);
+                        ctx.putImageData(imageData, photoX, photoY);
                     }
 
                     // Download
@@ -341,48 +377,50 @@ export default function PhotoStripPreview({ photos, frameSrc, miniFrame, filter,
         };
     };
     
-    return ( 
+    return (
         <div className="photo-strip-preview">
-        <canvas 
-            ref={canvasRef}
-            style={{
-                background: "white",
-                    width: "150px",
-                    height: "600px",
-                }}
-            />
-            <div className="preview-actions">
-                <button
-                    onClick={handleDownload}
-                    disabled={!isCanvasReady}
-                    className="download-btn"
-                >
-                    Download Full Strip
-                </button>
-                <button
-                    onClick={() => setShowIndividualSelection(!showIndividualSelection)}
-                    disabled={!isCanvasReady}
-                    className="download-individual-btn"
-                >
-                    Download Individual Photo
-                </button>
+            <div className="photo-strip-preview__strip-and-select">
+                <canvas
+                    ref={canvasRef}
+                    style={{
+                        background: "white",
+                        width: "150px",
+                        height: "600px",
+                    }}
+                />
                 {showIndividualSelection && (
-                    <div className="individual-photo-selection">
+                    <div className="photo-strip-preview__individual-btns">
                         {photos.map((_, index) => (
                             <button
                                 key={index}
                                 onClick={() => handleDownloadIndividual(index)}
-                                className="photo-select-btn"
+                                className="photo-strip-preview__individual-btn"
                             >
                                 Photo {index + 1}
                             </button>
                         ))}
                     </div>
                 )}
+            </div>
+            <div className="preview-actions">
+                <button
+                    onClick={handleDownload}
+                    disabled={!isCanvasReady}
+                    className="preview-actions__btn"
+                >
+                    Download
+                </button>
+                <button
+                    onClick={() => setShowIndividualSelection(!showIndividualSelection)}
+                    disabled={!isCanvasReady}
+                    className="preview-actions__btn"
+                >
+                    Select
+                </button>
                 {onReset && (
                     <button
                         onClick={onReset}
-                        className="reset-btn"
+                        className="preview-actions__btn"
                     >
                         Restart
                     </button>
